@@ -1,0 +1,18 @@
+{
+  "name": "fleet-blueprint",
+  "description": "Cocapn Fleet Blueprint \u2014 architecture diagram, integration matrix, migration guide",
+  "color": "#00E6D6",
+  "icon": "\ud83d\uddfa\ufe0f",
+  "endpoints": [
+    "/",
+    "/health",
+    "/vessel.json"
+  ],
+  "capabilities": [
+    "documentation",
+    "architecture",
+    "fleet-reference"
+  ],
+  "fleet": "cocapn",
+  "version": "0.1.0"
+}
