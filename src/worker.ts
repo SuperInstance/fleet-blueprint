@@ -1,357 +1,26 @@
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    const path = url.pathname;
+export interface Env {
+  // No KV bindings needed for this example
+}
 
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    
     // Health endpoint
-    if (path === '/health') {
+    if (url.pathname === '/health') {
       return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Vessel metadata endpoint
-    if (path === '/vessel.json') {
-      const metadata = {
-        name: "Cocapn Fleet Blueprint",
-        version: "1.0.0",
-        stats: {
-          vessels: 65,
-          repositories: 150,
-          api_keys: 0,
-          open_source: true
-        },
-        description: "Architecture diagram, integration matrix, and migration guide for Cocapn Fleet",
-        last_updated: "2024-01-01"
-      };
-      return new Response(JSON.stringify(metadata, null, 2), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
     // Main landing page
-    if (path === '/') {
-      const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cocapn Fleet Blueprint</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .hero {
-            padding: 80px 0;
-            text-align: center;
-            border-bottom: 1px solid #1a1a2e;
-        }
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #00E6D6, #00b3a6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 20px;
-        }
-        .tagline {
-            font-size: 1.2rem;
-            color: #aaa;
-            max-width: 800px;
-            margin: 0 auto 40px;
-        }
-        .section {
-            padding: 60px 0;
-            border-bottom: 1px solid #1a1a2e;
-        }
-        h2 {
-            font-size: 2.2rem;
-            color: #00E6D6;
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-        h3 {
-            font-size: 1.5rem;
-            color: #fff;
-            margin: 25px 0 15px;
-            font-weight: 500;
-        }
-        .architecture {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .layer {
-            background: #151520;
-            border-left: 4px solid #00E6D6;
-            padding: 20px;
-            border-radius: 0 8px 8px 0;
-            transition: transform 0.2s;
-        }
-        .layer:hover { transform: translateX(5px); }
-        .layer-title {
-            font-weight: 600;
-            color: #00E6D6;
-            margin-bottom: 5px;
-        }
-        .layer-desc { color: #bbb; font-size: 0.95rem; }
-        .matrix {
-            overflow-x: auto;
-            margin: 30px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #151520;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #252535;
-        }
-        th { background: #1a1a2e; color: #00E6D6; font-weight: 600; }
-        tr:hover { background: #1e1e2e; }
-        .phase {
-            background: #151520;
-            padding: 25px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #00E6D6;
-        }
-        .phase h4 { color: #fff; margin-bottom: 10px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        .stat-card {
-            background: #151520;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-            border-top: 3px solid #00E6D6;
-        }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #00E6D6;
-            margin-bottom: 10px;
-        }
-        .stat-label { color: #aaa; }
-        .code-block {
-            background: #151520;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: monospace;
-            color: #00E6D6;
-            margin: 20px 0;
-            overflow-x: auto;
-            border: 1px solid #252535;
-        }
-        .footer {
-            padding: 40px 0;
-            text-align: center;
-            color: #888;
-            font-size: 0.9rem;
-        }
-        a {
-            color: #00E6D6;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-        a:hover { opacity: 0.8; }
-        .highlight { color: #00E6D6; font-weight: 500; }
-        .note {
-            background: #1a1a2e;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #ff6b6b;
-            margin: 20px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <section class="hero">
-            <h1>Cocapn Fleet Blueprint</h1>
-            <p class="tagline">Architecture diagram, integration matrix, and migration guide for the open‑source agent runtime. 65+ vessels, 150+ repos, zero API keys.</p>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">65+</div>
-                    <div class="stat-label">Vessels</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">150+</div>
-                    <div class="stat-label">Repositories</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">0</div>
-                    <div class="stat-label">API Keys</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Open Source</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Architecture Diagram</h2>
-            <p>The Cocapn Fleet is structured in six layers, from core runtime to human oversight.</p>
-            <div class="architecture">
-                <div class="layer">
-                    <div class="layer-title">Layer 1: Core</div>
-                    <div class="layer-desc">Cocapn runtime – the foundational execution environment for all agents.</div>
-                </div>
-                <div class="layer">
-                    <div class="layer-title">Layer 2: Equipment (12 modules)</div>
-                    <div class="layer-desc">Tooling, memory, comms, safety, and other core modules.</div>
-                </div>
-                <div class="layer">
-                    <div class="layer-title">Layer 3: Vessels (65+)</div>
-                    <div class="layer-desc">Specialized agent instances each with a defined role and capability set.</div>
-                </div>
-                <div class="layer">
-                    <div class="layer-title">Layer 4: Orchestration</div>
-                    <div class="layer-desc">Loop‑closure, epiphany, and workflow coordination across vessels.</div>
-                </div>
-                <div class="layer">
-                    <div class="layer-title">Layer 5: Emergence (13 repos)</div>
-                    <div class="layer-desc">Higher‑order behaviors and collective intelligence patterns.</div>
-                </div>
-                <div class="layer">
-                    <div class="layer-title">Layer 6: Admiral (human)</div>
-                    <div class="layer-desc">Human‑in‑the‑loop oversight, steering, and final decision rights.</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Integration Matrix</h2>
-            <p>Which repositories connect to which components across the fleet.</p>
-            <div class="matrix">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Repository</th>
-                            <th>Connects To</th>
-                            <th>Protocol</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>cocapn‑core</td>
-                            <td>All equipment modules</td>
-                            <td>gRPC / HTTP</td>
-                            <td><span class="highlight">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>epiphany‑orchestrator</td>
-                            <td>65+ vessels, loop‑closure</td>
-                            <td>WebSocket</td>
-                            <td><span class="highlight">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>fleet‑memory</td>
-                            <td>All vessels, 13 emergence repos</td>
-                            <td>GraphQL</td>
-                            <td>Beta</td>
-                        </tr>
-                        <tr>
-                            <td>admiral‑dashboard</td>
-                            <td>Orchestration layer, human input</td>
-                            <td>REST + SSE</td>
-                            <td><span class="highlight">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>safety‑gateway</td>
-                            <td>All external comms</td>
-                            <td>HTTP middleware</td>
-                            <td>Stable</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>4‑Phase Roadmap</h2>
-            <p>Evolution plan derived from Grok analysis of the agent ecosystem.</p>
-            <div class="phase">
-                <h4>Phase 1: Consolidation (Now)</h4>
-                <p>Unify 150+ repos into a coherent monorepo structure. Standardize communication protocols and data schemas.</p>
-            </div>
-            <div class="phase">
-                <h4>Phase 2: Autonomy (Q2 2024)</h4>
-                <p>Enable fully autonomous vessel‑to‑vessel collaboration with loop‑closure and emergent task solving.</p>
-            </div>
-            <div class="phase">
-                <h4>Phase 3: Scale (Q3 2024)</h4>
-                <p>Horizontal scaling to 500+ vessels, cross‑fleet memory sharing, and distributed orchestration.</p>
-            </div>
-            <div class="phase">
-                <h4>Phase 4: Admiral AI (Q4 2024)</h4>
-                <p>AI‑assisted human oversight, predictive steering, and adaptive fleet‑wide strategy formation.</p>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Migration Guide</h2>
-            <p>Moving from LangGraph, CrewAI, or AutoGen to Cocapn.</p>
-            <h3>Step 1: Install Cocapn</h3>
-            <div class="code-block">curl -fsSL https://install.cocapn.ai | bash</div>
-            <h3>Step 2: Convert Your Agent Definitions</h3>
-            <p>Cocapn uses a declarative YAML format. Convert your existing agents:</p>
-            <div class="code-block">cocapn migrate --from langgraph --input agent.json --output vessel.yaml</div>
-            <h3>Step 3: Deploy to Fleet</h3>
-            <div class="code-block">cocapn fleet deploy vessel.yaml --env production</div>
-            <div class="note">
-                <strong>Note:</strong> Cocapn is API‑key‑free by design. All communication uses signed, short‑lived tokens.
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>One‑Command Deploy</h2>
-            <p>Deploy your own fleet in under 60 seconds.</p>
-            <div class="code-block">docker run --rm -p 8080:8080 ghcr.io/lucineer/cocapn-fleet:latest</div>
-            <p>Or use the Cloudflare Worker template:</p>
-            <div class="code-block">wrangler generate my-fleet https://github.com/Lucineer/cocapn-fleet-worker</div>
-            <p>Then deploy:</p>
-            <div class="code-block">cd my-fleet && npm run deploy</div>
-        </section>
-
-        <footer class="footer">
-            <p><i style="color:#888">Built with <a href="https://github.com/Lucineer/cocapn-ai" style="color:#00E6D6">Cocapn</a> — the open‑source agent runtime.</i></p>
-            <p style="margin-top: 15px; font-size: 0.8rem;">
-                <a href="/health">Health</a> • <a href="/vessel.json">Metadata</a> • <a href="https://github.com/Lucineer/cocapn-ai">GitHub</a> • <a href="https://docs.cocapn.ai">Docs</a>
-            </p>
-        </footer>
-    </div>
-</body>
-</html>`;
-      
-      return new Response(html, {
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return new Response(generateHTML(), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-ancestors 'none'",
-          'X-Frame-Options': 'DENY'
+          'X-Frame-Options': 'DENY',
+          'X-Content-Type-Options': 'nosniff'
         }
       });
     }
@@ -360,3 +29,506 @@ export default {
     return new Response('Not Found', { status: 404 });
   }
 };
+
+function generateHTML(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocapn Fleet Blueprint</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --accent: #00E6D6;
+            --accent-dark: #00b3a6;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --border: #222230;
+            --card-bg: #151520;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #00b3a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 3rem;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-top: 2rem;
+        }
+        
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        
+        .layer {
+            margin-bottom: 2rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .layer-title {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+        
+        .layer-content {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        tr:hover {
+            background: rgba(0, 230, 214, 0.05);
+        }
+        
+        /* Roadmap */
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .phase {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .phase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 12px 0 0 12px;
+        }
+        
+        .phase-title {
+            color: var(--accent);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .phase-days {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Quick Start */
+        .quick-start {
+            background: linear-gradient(135deg, rgba(0, 230, 214, 0.1) 0%, rgba(0, 179, 166, 0.05) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .footer-logo {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .roadmap {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <header style="padding: 4rem 0 2rem;">
+            <h1>Cocapn Fleet Blueprint</h1>
+            <p class="subtitle">Architecture diagram, integration matrix, and migration guide for the sovereign agent fleet</p>
+        </header>
+        
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value">65+</span>
+                <span class="stat-label">Vessels</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">150+</span>
+                <span class="stat-label">Repos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">0</span>
+                <span class="stat-label">API Keys</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">Open</span>
+                <span class="stat-label">Source</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">12</span>
+                <span class="stat-label">Equipment Modules</span>
+            </div>
+        </div>
+        
+        <!-- Architecture Diagram -->
+        <section>
+            <h2>Architecture Diagram</h2>
+            <div class="architecture">
+                <div class="layer">
+                    <div class="layer-title">Layer 6: Admiral (Human)</div>
+                    <div class="layer-content">← commands flow down</div>
+                </div>
+                <div class="layer">
+                    <div class="layer-title">Layer 5: Emergence (13 repos)</div>
+                    <div class="layer-content">skill-evolver → epiphany-engine → loop-closure → swarm-intuition → fleet-identity → collective-mind</div>
+                </div>
+                <div class="layer">
+                    <div class="layer-title">Layer 4: Orchestration</div>
+                    <div class="layer-content">loop-closure, epiphany-engine, meta-loop-evolver, flow-forge</div>
+                </div>
+                <div class="layer">
+                    <div class="layer-title">Layer 3: Vessels (65+ themed deployments)</div>
+                    <div class="layer-content">studylog, dmlog, makerlog, fishinglog, etc.</div>
+                </div>
+                <div class="layer">
+                    <div class="layer-title">Layer 2: Equipment (12 modules)</div>
+                    <div class="layer-content">crystal-graph, session-tracker, INCREMENTS-trust, compliance, etc.</div>
+                </div>
+                <div class="layer">
+                    <div class="layer-title">Layer 1: Core</div>
+                    <div class="layer-content">cocapn runtime, vessel.json, KV, emergence-bus, BYOK</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Integration Matrix -->
+        <section>
+            <h2>Integration Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vessel Category</th>
+                        <th>Core Equipment</th>
+                        <th>Emergence Layer</th>
+                        <th>Connections</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>StudyLog</td>
+                        <td>Crystal Graph, Session Tracker</td>
+                        <td>Skill Evolver</td>
+                        <td>15+ vessels</td>
+                    </tr>
+                    <tr>
+                        <td>DMLog</td>
+                        <td>INCREMENTS-trust, Compliance</td>
+                        <td>Epiphany Engine</td>
+                        <td>22+ vessels</td>
+                    </tr>
+                    <tr>
+                        <td>MakerLog</td>
+                        <td>Flow Forge, Session Tracker</td>
+                        <td>Loop Closure</td>
+                        <td>18+ vessels</td>
+                    </tr>
+                    <tr>
+                        <td>FishingLog</td>
+                        <td>Compliance, Crystal Graph</td>
+                        <td>Swarm Intuition</td>
+                        <td>10+ vessels</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Roadmap -->
+        <section>
+            <h2>4-Phase Roadmap</h2>
+            <div class="roadmap">
+                <div class="phase">
+                    <div class="phase-title">Foundation</div>
+                    <div class="phase-days">Days 1-14</div>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Core runtime setup</li>
+                        <li>Vessel.json standardization</li>
+                        <li>Basic equipment modules</li>
+                    </ul>
+                </div>
+                <div class="phase">
+                    <div class="phase-title">Self-Evolution</div>
+                    <div class="phase-days">Days 15-35</div>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Emergence layer activation</li>
+                        <li>Skill evolvers online</li>
+                        <li>Auto-scaling vessels</li>
+                    </ul>
+                </div>
+                <div class="phase">
+                    <div class="phase-title">Edge Swarm</div>
+                    <div class="phase-days">Days 36-60</div>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Distributed orchestration</li>
+                        <li>Swarm intuition networks</li>
+                        <li>Edge deployment ready</li>
+                    </ul>
+                </div>
+                <div class="phase">
+                    <div class="phase-title">Market</div>
+                    <div class="phase-days">Days 61-90</div>
+                    <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Vessel marketplace</li>
+                        <li>Equipment exchange</li>
+                        <li>BYOK ecosystem</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Migration Guide -->
+        <section>
+            <h2>Migration Guide</h2>
+            <h3>From LangGraph/CrewAI/AutoGen</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Framework</th>
+                        <th>Key Difference</th>
+                        <th>Migration Effort</th>
+                        <th>Benefit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LangGraph</td>
+                        <td>Stateful → Stateless vessels</td>
+                        <td>Medium</td>
+                        <td>Zero API keys, BYOK</td>
+                    </tr>
+                    <tr>
+                        <td>CrewAI</td>
+                        <td>Centralized → Distributed orchestration</td>
+                        <td>High</td>
+                        <td>65+ vessel scalability</td>
+                    </tr>
+                    <tr>
+                        <td>AutoGen</td>
+                        <td>Conversation → Emergence patterns</td>
+                        <td>Medium</td>
+                        <td>Self-evolving skills</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 style="margin-top: 2rem;">Step-by-Step Migration</h3>
+            <ol style="color: var(--text-secondary); padding-left: 1.5rem; margin: 1rem 0;">
+                <li>Export existing agent configurations</li>
+                <li>Map to vessel.json schema</li>
+                <li>Deploy core equipment modules</li>
+                <li>Connect to emergence bus</li>
+                <li>Activate swarm intuition layer</li>
+            </ol>
+        </section>
+        
+        <!-- Quick Start -->
+        <section>
+            <h2>Quick Start</h2>
+            <div class="quick-start">
+                <h3 style="color: var(--accent); margin-top: 0;">Get your fleet operational in 3 steps:</h3>
+                <div class="code-block">
+                    <div class="mono" style="color: var(--accent);"># 1. Fork the fleet blueprint</div>
+                    <div class="mono" style="color: var(--text-primary); margin: 0.5rem 0;">git clone https://github.com/cocapn/fleet-blueprint</div>
+                </div>
+                <div class="code-block">
+                    <div class="mono" style="color: var(--accent);"># 2. Deploy with Wrangler</div>
+                    <div class="mono" style="color: var(--text-primary); margin: 0.5rem 0;">wrangler deploy --env production</div>
+                </div>
+                <div class="code-block">
+                    <div class="mono" style="color: var(--accent);"># 3. Your fleet is alive</div>
+                    <div class="mono" style="color: var(--text-primary); margin: 0.5rem 0;">curl https://your-fleet.workers.dev/health</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer>
+            <div class="footer-logo">COCAPN FLEET BLUEPRINT</div>
+            <p>Sovereign agent architecture for the open ecosystem</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;">Zero API keys • BYOK • Self-evolving • Edge-ready</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Simple health check indicator
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Fleet status:', data.status);
+                })
+                .catch(err => {
+                    console.log('Health check:', err);
+                });
+        });
+    </script>
+</body>
+</html>`;
+}
